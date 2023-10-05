@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <pthread.h>
-#include <stdlib.h>
 
 #define NUMVALS (1024*1024)
-#define NUMTHREADS 1
+#define NUMTHREADS 5
 
 float g_vals[NUMVALS];
+pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
+int totalCount = 0;
 
 typedef struct {
     int startIndex; // start index at which to start looking
@@ -16,7 +17,6 @@ typedef struct {
 
 void *doCount(void *);
 int prand();
-void *runner(void *);
 
 
 int main() {
@@ -60,7 +60,8 @@ int main() {
     for (i=0; i<NUMTHREADS; ++i)
         pthread_join(tids[i], NULL);
 
-    printf("count %d\n", tdata[0].count);
+    printf("Total count: %d\n", tdata[NUMTHREADS - 1].count);
+
     return 0;
 }
 
@@ -73,9 +74,16 @@ void *doCount(void *param) {
             count++;
         }
     }
-    data->count = count;
+
+    // Use a mutex to update the total count across all threads
+    pthread_mutex_lock(&count_mutex);
+    totalCount += count;
+    pthread_mutex_unlock(&count_mutex);
+
+    data->count = totalCount;
     pthread_exit(NULL);
 }
+
 int prand() {
     static int p = 1;
     const int a = 105491;

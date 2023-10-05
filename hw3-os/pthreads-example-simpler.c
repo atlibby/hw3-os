@@ -21,7 +21,7 @@ typedef struct {
 int A[NUM_ELEMENTS];
 
 //---------------------------------------------------------------------------
-/*
+
 void *runner(void *param) {
     ThreadInfo *data;
     int i, maxVal;
