@@ -2,7 +2,7 @@
 #include <pthread.h>
 
 #define NUMVALS (1024*1024)
-#define NUMTHREADS 5
+#define NUMTHREADS 4
 
 float g_vals[NUMVALS];
 pthread_mutex_t count_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -60,7 +60,11 @@ int main() {
     for (i=0; i<NUMTHREADS; ++i)
         pthread_join(tids[i], NULL);
 
-    printf("Total count: %d\n", tdata[NUMTHREADS - 1].count);
+    for (i=0; i < NUMTHREADS; ++i) {
+        printf("Individual count: %d\n", tdata[i].count);
+        totalCount += tdata[i].count;
+    }
+    printf("Total count: %d\n", totalCount);
 
     return 0;
 }
@@ -75,13 +79,7 @@ void *doCount(void *param) {
         }
     }
 
-    // Use a mutex to update the total count across all threads
-    pthread_mutex_lock(&count_mutex);
-    totalCount += count;
-    pthread_mutex_unlock(&count_mutex);
-
-    data->count = totalCount;
-    pthread_exit(NULL);
+    data->count = count;
 }
 
 int prand() {
